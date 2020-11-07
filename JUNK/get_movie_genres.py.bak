@@ -1,0 +1,55 @@
+from bs4 import BeautifulSoup
+from urllib.request import urlopen
+from selenium import webdriver
+from webdriver_manager.firefox import GeckoDriverManager
+import time
+from requests import get
+import traceback
+
+def get_content(url):
+    response = get(url)
+    html_soup = BeautifulSoup(response.text, "html.parser")
+    
+    movie_containers = html_soup.find_all('div', class_="lister-item mode-advanced")
+    
+    ret = []
+    for movie in movie_containers:
+        print(movie.h3)
+
+
+
+
+options = webdriver.FirefoxOptions()
+
+# options.add_argument("--ignore-certificate-errors")
+# options.add_argument("--incognito")
+# options.add_argument("--headless")
+# driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), options=options)
+driver = webdriver.Firefox(executable_path=GeckoDriverManager().install())
+
+
+driver.get("https://www.imdb.com/feature/genre/?ref_=nv_ch_gr")
+
+# driver.implicitly_wait(5)
+
+genres = ["Comedy", "Sci-Fi", "Horror", "Romance", "Action", "Thriller", "Drama", "Mystery", "Crime", "Animation", 
+"Adventure", "Fantasy", "Comedy-Romance", "Action-Comedy"]
+
+driver.maximize_window()
+
+for genre in genres:
+    try:
+        link = driver.find_element_by_link_text(genre)
+        link.click()
+        get_content(driver.current_url)
+        driver.execute_script("window.history.go(-1)")
+    except Exception as e:
+        print("Exception ⛔⛔⛔⛔")
+        print(traceback.print_exc())
+        driver.close()
+        driver.quit()
+
+driver.quit()
+
+
+
