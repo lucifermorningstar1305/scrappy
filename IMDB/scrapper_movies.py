@@ -11,6 +11,8 @@ import time
 import traceback
 import re
 import json
+import configparser
+import os
 
 def get_content(url, max_pages = 800):
 
@@ -109,9 +111,11 @@ def get_content(url, max_pages = 800):
 
                     ret.append(_temp)
 
-                # next_page_url = html_soup.find(name="a", class_="lister-page-next next-page", href=True)['href']
-                # url = url.replace("/search/title/?genres=comedy",next_page_url)
+                # Traverse to the next page 
                 try:
+                    #
+                    # Scroll to the bottom of the page for the Next >> button
+                    # 
                     lenOfPage = driver.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
                     match = False
                     while not match:
@@ -124,11 +128,9 @@ def get_content(url, max_pages = 800):
                     ""
                     
                     next_page = WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.LINK_TEXT, "Next »")))
-                    # next_page = driver.find_element_by_class_name("lister-page-next next-page")
-                    # next_page = driver.find_element_by_link_text("Next »")
-                    # driver.execute_script("arguments[0].click();",next_page)
                     next_page.click()
                     url = driver.current_url
+
                 except Exception as e:
                     print("Error Occured : 🚷")
                     print(traceback.print_exc())
@@ -163,15 +165,33 @@ if __name__ == "__main__":
 
     data = []
 
-    driver = webdriver.Firefox(executable_path=GeckoDriverManager().install())
+    config = configparser.ConfigParser()
+    config.read("./config.ini")
+
+    options = webdriver.FirefoxOptions()
+    options.add_argument("--ignore-certificate-errors")
+
+    if config["SETTINGS"]["SILENTCOLLECTION"].lower() == "true":
+        options.add_argument("--incognito")
+        options.add_argument("--headless")
+
+
+
+    driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), options=options)
+
+    max_pages = int(config["SETTINGS"]["NUMBEROFPAGES"])
+
     for i in range(len(genres)):
 
         new_url = base_url + genres[i]
         driver.get(new_url)
         print(f"Collecting data for {genres[i]} {genre_icons[i]}...")
-        ret = get_content(new_url, max_pages=4)
+        ret = get_content(new_url, max_pages=max_pages)
         data.append(ret)
 
+    
+    if not os.path.exists(os.path.join(os.getcwd(), "DATA")):
+        os.mkdir("./DATA/")
     with open('./DATA/data_movies.json', 'w') as json_file:
         json.dump(data, json_file)
         
