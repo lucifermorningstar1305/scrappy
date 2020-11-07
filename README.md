@@ -8,7 +8,7 @@
 
 I am a repository, containing data-scraping files, for any websites you name it! I dare you 😎. 
 
-Also I've silent download mode, which means I'll run in the background and collect data for you, without even disturbing your work 😇
+Also I've silent download mode, which means I'll run in the background and collect data for you from the web, without even disturbing your work 😇
 
 ## Dependencies 👨‍👩‍👧‍👦
 
